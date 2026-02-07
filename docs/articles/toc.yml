@@ -1,0 +1,14 @@
+- name: Getting Started
+  href: getting-started.md
+- name: Architecture Overview
+  href: architecture.md
+- name: Working with Digital IO
+  href: digital-io.md
+- name: Working with Analog IO
+  href: analog-io.md
+- name: Protocols Guide
+  href: protocols.md
+- name: Ethernet to Serial Guide
+  href: ethernet-to-serial.md
+- name: Device Reference
+  href: device-reference.md

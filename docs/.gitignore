@@ -1,0 +1,10 @@
+# DocFX intermediate files
+api/*.yml
+api/.manifest
+obj/
+
+# Old HTML output (no longer used)
+_site/
+
+# Generated Docusaurus markdown (regenerate with: docs-build task)
+docusaurus/api/

@@ -1,0 +1,9 @@
+REM need to run a one time config to enable the demo
+REM 1. all use of port 8888 for the server:
+netsh http add urlacl url=http://+:8888/ user=**YOUR WINDOWS LOGIN USERNAME INCLUDING DOMAIN e.g. Network1\name**
+netsh http add urlacl url=http://+:8989/ user=**YOUR WINDOWS LOGIN USERNAME INCLUDING DOMAIN e.g. Network1\name**
+ 
+REM 2. open a port in the firewall to allow inbound traffic
+netsh advfirewall firewall add rule name="BBDemo" protocol=TCP localport=8888 action=allow dir=IN
+netsh advfirewall firewall add rule name="BBDemoWebSocket" protocol=TCP localport=8989 action=allow dir=IN
+REM Both commands need to be run as Admin

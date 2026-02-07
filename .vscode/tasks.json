@@ -1,0 +1,83 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "${workspaceFolder}/Brainboxes.IO.sln",
+                "--framework", "net10.0",
+                "/property:GenerateFullPaths=true",
+                "/consoleloggerparameters:NoSummary"
+            ],
+            "problemMatcher": "$msCompile",
+            "group": { "kind": "build", "isDefault": true }
+        },
+        {
+            "label": "test",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "test",
+                "${workspaceFolder}/Brainboxes.IO.Tests/Brainboxes.IO.Tests.csproj",
+                "--framework", "net10.0",
+                "--no-build"
+            ],
+            "dependsOn": "build",
+            "problemMatcher": "$msCompile",
+            "group": { "kind": "test", "isDefault": true }
+        },
+        {
+            "label": "build-all-targets",
+            "command": "dotnet",
+            "type": "process",
+            "args": [
+                "build",
+                "${workspaceFolder}/Brainboxes.IO.sln",
+                "/property:GenerateFullPaths=true"
+            ],
+            "problemMatcher": "$msCompile",
+            "detail": "Build all targets (requires Windows for net48)"
+        },
+        {
+            "label": "docs-metadata",
+            "type": "shell",
+            "command": "docfx",
+            "args": ["metadata", "docs/docfx.json"],
+            "problemMatcher": [],
+            "detail": "Generate YAML metadata from C# code"
+        },
+        {
+            "label": "docs-markdown",
+            "type": "shell",
+            "command": "dfmg",
+            "options": {
+                "cwd": "${workspaceFolder}/docs",
+                "env": { "DFMG_CONFIG": "dfmg-config.yaml" }
+            },
+            "dependsOn": "docs-metadata",
+            "problemMatcher": [],
+            "detail": "Convert YAML to Docusaurus Markdown"
+        },
+        {
+            "label": "docs-postprocess",
+            "type": "shell",
+            "command": "python3",
+            "args": ["postprocess-dfmg.py"],
+            "options": {
+                "cwd": "${workspaceFolder}/docs"
+            },
+            "dependsOn": "docs-markdown",
+            "problemMatcher": [],
+            "detail": "Augment Markdown with remarks, examples, and cleanup"
+        },
+        {
+            "label": "docs-build",
+            "dependsOn": ["docs-metadata", "docs-markdown", "docs-postprocess"],
+            "problemMatcher": [],
+            "detail": "Full documentation build (generates Docusaurus-compatible Markdown)"
+        }
+    ]
+}

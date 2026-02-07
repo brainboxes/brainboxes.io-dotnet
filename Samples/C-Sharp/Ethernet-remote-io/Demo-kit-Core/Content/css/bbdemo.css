@@ -1,0 +1,106 @@
+﻿#fan-outer {
+    position: absolute;
+}
+#fan-inner {
+    position: relative;
+}
+#fan-inner.on {
+    -webkit-animation-name: spin;
+    -webkit-animation-duration: 400ms;
+    -webkit-animation-iteration-count: infinite;
+    -webkit-animation-timing-function: linear;
+    -moz-animation-name: spin;
+    -moz-animation-duration: 400ms;
+    -moz-animation-iteration-count: infinite;
+    -moz-animation-timing-function: linear;
+    -ms-animation-name: spin;
+    -ms-animation-duration: 400ms;
+    -ms-animation-iteration-count: infinite;
+    -ms-animation-timing-function: linear;
+    
+    animation-name: spin;
+    animation-duration: 400ms;
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+}
+@-ms-keyframes spin {
+    from { -ms-transform: rotate(0deg); }
+    to { -ms-transform: rotate(360deg); }
+}
+@-moz-keyframes spin {
+    from { -moz-transform: rotate(0deg); }
+    to { -moz-transform: rotate(360deg); }
+}
+@-webkit-keyframes spin {
+    from { -webkit-transform: rotate(0deg); }
+    to { -webkit-transform: rotate(360deg); }
+}
+@keyframes spin {
+    from {
+        transform:rotate(0deg);
+    }
+    to {
+        transform:rotate(360deg);
+    }
+}
+
+@-webkit-keyframes spaceboots {
+    0% { -webkit-transform: translate(4px, 2px) rotate(0deg); }
+    10% { -webkit-transform: translate(-2px, -4px) rotate(-1deg); }
+    20% { -webkit-transform: translate(-6px, 0px) rotate(1deg); }
+    30% { -webkit-transform: translate(0px, 4px) rotate(0deg); }
+    40% { -webkit-transform: translate(2px, -2px) rotate(1deg); }
+    50% { -webkit-transform: translate(-2px, 4px) rotate(-1deg); }
+    60% { -webkit-transform: translate(-6px, 2px) rotate(0deg); }
+    70% { -webkit-transform: translate(4px, 2px) rotate(-1deg); }
+    80% { -webkit-transform: translate(-2px, -2px) rotate(1deg); }
+    90% { -webkit-transform: translate(4px, 4px) rotate(0deg); }
+    100% { -webkit-transform: translate(2px, -4px) rotate(-1deg); }
+}
+@keyframes spaceboots {
+    0% { transform: translate(4px, 2px) rotate(0deg); }
+    10% { transform: translate(-2px, -4px) rotate(-1deg); }
+    20% { transform: translate(-6px, 0px) rotate(1deg); }
+    30% { transform: translate(0px, 4px) rotate(0deg); }
+    40% { transform: translate(2px, -2px) rotate(1deg); }
+    50% { transform: translate(-2px, 4px) rotate(-1deg); }
+    60% { transform: translate(-6px, 2px) rotate(0deg); }
+    70% { transform: translate(4px, 2px) rotate(-1deg); }
+    80% { transform: translate(-2px, -2px) rotate(1deg); }
+    90% { transform: translate(4px, 4px) rotate(0deg); }
+    100% {transform: translate(2px, -4px) rotate(-1deg); }
+}
+#beeper.on {
+    -webkit-animation-name: spaceboots;
+    -webkit-animation-duration: 0.8s;
+    -webkit-transform-origin:50% 50%;
+    -webkit-animation-iteration-count: infinite;
+    -webkit-animation-timing-function: linear;
+
+    animation-name: spaceboots;
+    animation-duration:  0.8s;
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+}
+
+#numberHolder {
+    width: 100%;
+    height: 350px;
+    transition: background-image 0.4s ease;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+
+.hoverselect, .hoverselect img {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.hoverselect:hover{
+    background-color: #F6FAFF;
+}
+
+.hoverselect:active, .hoverselect img:active  {
+    background-color: #94DBFF;
+}

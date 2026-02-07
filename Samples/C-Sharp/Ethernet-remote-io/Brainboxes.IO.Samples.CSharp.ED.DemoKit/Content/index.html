@@ -1,0 +1,95 @@
+﻿<!DOCTYPE html>
+<html lang="en" ng-app="BBDemo">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta http-equiv="expires" content="-1" />
+
+    <meta name="theme-color" content="#F5F5F5">
+    <link rel="apple-touch-icon" sizes="57x57" href="icons/bb-apple-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="icons/bb-apple-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="icons/bb-apple-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="icons/bb-apple-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="icons/bb-apple-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="icons/bb-apple-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="icons/bb-apple-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="icons/bb-apple-icon-152x152.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="icons/bb-apple-icon-180x180.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/bb-android-icon-192x192.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="icons/bb-favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="96x96" href="icons/bb-favicon-96x96.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="icons/bb-favicon-16x16.png">
+    <link rel="manifest" href="icons/manifest.json">
+    <meta name="msapplication-TileColor" content="#ffffff">
+    <meta name="msapplication-TileImage" content="icons/bb-ms-icon-144x144.png">
+
+
+    <link href="css/bootstrap.min.css" rel="stylesheet" />
+    <link href="css/bbdemo.css" rel="stylesheet" />
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
+    <title>Brainboxes Industry 4.0 Demo</title>
+</head>
+<body>
+
+    <div class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header navbar-collapse collapse">
+                <a href="/"><img class="nav-logo pull-left" src="img/brainboxes-logo-white.png" title="Brainboxes Insight Engine" height="60" /></a>
+            </div>
+            <div class="navbar-center navbar-brand"><a class="navbar-brand">Enabling Industry 4.0</a></div>
+            <div class="navbar-collapse collapse">
+                <img class="nav-logo pull-right" src="img/insight-engine-logo-white.png" title="Brainboxes Insight Engine" height="60">
+                <ul class="nav navbar-nav">
+                    <li></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="container-fluid" ng-controller="demoCtrl" style="margin-top: 70px;">
+        <div class="col-xs-12 col-lg-4 text-center">
+            <div class="col-xs-12 text-center"><h3 class="item-title">LCD Display : {{EDDevice.currentNumber.toString(16).toUpperCase()}} <small>abs count: {{EDDevice.absoluteCount}}</small></h3></div>
+            <div class="col-xs-12 hoverselect text-center" ng-class="{'bg-warning': EDDevice.isSliderRight}" ng-click="incrementNumber()"><div id="numberHolder" style="background-image:url({{imagePath}}{{EDDevice.currentNumber.toString(16).toUpperCase()}}.png);"></div><img id="dotHolder" ng-show="EDDevice.isSliderRight" src="img/dot.png" /></div>
+            <div class="col-xs-12 text-center"><h3 class="item-title">Average Cycle Time : {{EDDevice.rollingTactTime | date:'mm:ss.sss'}}</h3> <p class="text-muted">Last 10 cycles</p></div>
+            <div class="col-xs-12" live-chart history-ms="1000*60*1.25" scale-max="16" chart-watch="EDDevice.currentNumber"></div>
+
+        </div>
+        <div class="col-xs-12 col-lg-4 text-center">
+            <div class="col-xs-12 text-center"><h3 class="item-title" ng-class="{'bg-success':EDDevice.isFanOn}">Lego Machine : <span>{{EDDevice.isFanOn ? "On" : "Off"}}</span></h3></div>
+            <div class="col-xs-12 hoverselect text-center" ng-click="toggleFan()"><img id="fan-outer" src="img/fan_outer.jpg" /><img id="fan-inner" src="img/fan_inner.png" ng-class="{on:EDDevice.isFanOn}" /></div>
+            <div class="col-xs-12 text-center"><h3 class="item-title">Rolling Machine Availibility : <span>{{EDDevice.rollingAvailability | number:2}}%</span></h3> <p class="text-muted">Last 75 seconds</p></div>
+            <div class="col-xs-12" live-chart history-ms="1000*60*1.25" scale-max="1" chart-watch="EDDevice.isFanOn"></div>
+
+        </div>
+        <div class="col-xs-12 col-lg-4 text-center">
+            <div class="col-xs-12 text-center"><h3 class="item-title" ng-class="{'bg-danger':EDDevice.isBeeping}">Alarm: <span id="alarm-warning" ng-class="{'bg-danger':(EDDevice.isBeeping)}">{{EDDevice.isBeeping ? "On" : "Off"}}</span></h3></div>
+            <div class="col-xs-12 hoverselect text-center" ng-click="makeBeep()"><img id="beeper" ng-class="{on:EDDevice.isBeeping}" src="img/buzzer.png" /></div>
+            <div class="col-xs-12 text-center"><h3 class="item-title" ng-class="{'bg-danger':EDDevice.isBeeping}">Alarm Calls: <span id="alarm-warning" ng-class="{'bg-danger':(numberOfBeeps>0)}">{{numberOfBeeps}}</span></h3><p class="text-muted">This shift</p></div>
+            <div class="col-xs-12" live-chart history-ms="1000*60*1.25" scale-max="1" chart-watch="EDDevice.isBeeping"></div>
+
+        </div>
+        <div class="col-xs-12 text-center">
+            <div class="col-xs-6 col-xs-offset-3"><h2>Cloud Maintainence</h2></div>
+            <div class="col-xs-12 col-lg-4"><h4>Preventative Maintenance</h4><ul><li>Maintainence works orders generated to do period machine maintenance</li><li>E.g. Oil the Lego Motor every 2000 widgets produced</li></ul></div>
+            <div class="col-xs-12 col-lg-4"><h4>Predictive Maintenance</h4><ul><li>Maintainence works orders generated after cloud analysis of many sets of machine data</li><li>E.g. With this class of machine, analysis has found that you should check the conveyor tension at 1,500 hours of running</li></ul></div>
+            <div class="col-xs-12 col-lg-4"><h4>Reactive Maintenance</h4><ul><li>Respond to immediate machine issues with engineer</li><li>E.g. Pressing the alarm, automatically generates a cloud works order for an engineer to fix the machine</li><li>E.g. If the motor vibration is incorrect, generates a works order for engineer to fix the machine at the next down time</li></ul></div>
+        </div>
+        <div class="row col-xs-12">
+            <h4>Demo Login:</h4>
+            <p>Connect to brainboxes-aio wifi, pw: brainboxes</p>
+            <p>In a web browser, open http://YOUR_DEVICE_IP/ </p>
+        </div>
+    </div>
+    <footer>
+        <p class="pull-right"><a href="javascript:location.reload(true);">Reload</a> | Insight Engine © 2016 - Powered by <a href="http://www.brainboxes.com/">Brainboxes Ltd</a></p>
+    </footer>
+    <script src="js/jquery-2.1.0.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/d3.min.js"></script>
+    <script src="js/angular.min.js"></script>
+    <script src="js/BBDemo.js"></script>
+
+</body>
+</html>

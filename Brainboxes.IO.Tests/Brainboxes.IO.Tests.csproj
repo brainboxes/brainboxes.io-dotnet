@@ -1,0 +1,45 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">net10.0;net48</TargetFrameworks>
+    <TargetFrameworks Condition="'$(OS)' != 'Windows_NT'">net10.0</TargetFrameworks>
+    <RootNamespace>Brainboxes.IO.Tests</RootNamespace>
+    <AssemblyName>Brainboxes.IO.Tests</AssemblyName>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <RunSettingsFilePath>$(MSBuildProjectDirectory)\test.runsettings</RunSettingsFilePath>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="MSTest.TestAdapter" Version="3.7.0" />
+    <PackageReference Include="MSTest.TestFramework" Version="3.7.0" />
+    <PackageReference Include="coverlet.collector" Version="6.0.2" />
+    <PackageReference Include="HdrHistogram" Version="2.5.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0'">
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="9.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Brainboxes.IO\Brainboxes.IO.csproj" />
+  </ItemGroup>
+
+  <!--
+    For .NET Core/.NET 5+ test projects:
+    MSTest runs via testhost.dll, so ConfigurationManager looks for testhost.dll.config.
+    The SDK already copies app.config to {AssemblyName}.dll.config automatically.
+    This target creates testhost.dll.config for .NET 10 test compatibility.
+  -->
+  <Target Name="CopyAppConfigForTestHost"
+          AfterTargets="Build"
+          Condition="!$(TargetFramework.StartsWith('net4'))">
+    <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll.config"
+          DestinationFiles="$(OutputPath)testhost.dll.config"
+          SkipUnchangedFiles="true"
+          Condition="Exists('$(OutputPath)$(AssemblyName).dll.config')" />
+  </Target>
+
+</Project>

@@ -1,0 +1,140 @@
+# Brainboxes.IO .NET API
+
+> .NET library for communicating with Brainboxes Ethernet-attached data acquisition and control devices. Supports ED-series (Remote IO), ES-series (Ethernet to Serial), and BB-400 (Edge Controller) devices over ASCII or Modbus TCP protocols.
+
+## Installation
+
+```bash
+dotnet add package Brainboxes.IO
+```
+
+Targets: .NET 10, .NET Standard 2.0/2.1, .NET Framework 4.8
+
+## Core Pattern
+
+All device interaction follows: **Create → Connect → Read/Write → Dispose**
+
+```csharp
+using Brainboxes.IO;
+
+// ED-series (Remote IO)
+using (EDDevice ed = EDDevice.Create("192.168.0.100"))
+{
+    int input = ed.Inputs[0].Value;    // 0=LOW, 1=HIGH
+    ed.Outputs[0].Value = 1;           // 0=OPEN, 1=CLOSED
+}
+
+// ES-series (Ethernet to Serial)
+var es = new ES246("192.168.0.100");
+es.Connect();
+es.Ports[0].Send("Hello");
+string response = es.Ports[0].Receive();
+es.Disconnect();
+```
+
+## Key Classes
+
+- `EDDevice` — Base class for ED-series Remote IO devices. Factory method `Create(ip)` auto-detects device type. Access IO via `Inputs[]`, `Outputs[]`, `IOLines[]` collections.
+- `ESDevice` — Base class for ES-series Ethernet to Serial devices. Serial ports via `Ports[]` collection. Each `BBSerialPort` has `Send()` and `Receive()`.
+- `IOLine` — Single IO line (digital or analog, input or output). `Value` (int, digital), `AValue` (double, analog), `Toggle()`, events.
+- `TCPConnection` — Ethernet TCP connection. Port 9500 = ASCII protocol, port 502 = Modbus TCP.
+- `ASCIIProtocol` — Human-readable text protocol on port 9500. Commands are CR-terminated.
+- `ModbusTCPProtocol` — Binary Modbus protocol on port 502. Industry-standard SCADA integration.
+- `DefaultSerialProtocol` — Configurable encoding and terminating characters for ES-series serial ports.
+
+## Supported Devices
+
+### ED-Series (Remote IO)
+| Device | Inputs | Outputs | Type |
+|--------|--------|---------|------|
+| ED-588 | 8 DI | 8 DO | Digital |
+| ED-516 | 16 DI | — | Digital |
+| ED-527 | — | 16 DO | Digital |
+| ED-538 | 8 DI | 4 Relay | Digital |
+| ED-549 | 8 AI | — | Analog |
+| ED-560 | — | 4 AO | Analog |
+| ED-582 | 4 RTD | — | Temperature |
+| ED-593 | 8 TC | — | Temperature |
+| BB-400 | 8 DI | 8 DO | Edge Controller |
+
+### ES-Series (Ethernet to Serial)
+| Device | Ports | Type |
+|--------|-------|------|
+| ES-246 | 1 | RS-232 |
+| ES-257 | 2 | RS-232 |
+| ES-313 | 1 | RS-422/485 |
+| ES-320 | 2 | RS-422/485 |
+
+(Plus ES-346, ES-357, ES-413, ES-420, ES-446, ES-457, ES-511, ES-522, ES-551, ES-571, ES-701, ES-279, ES-842)
+
+## Common Code Patterns
+
+### Digital IO Read/Write
+```csharp
+using (EDDevice ed = EDDevice.Create("192.168.0.100"))
+{
+    int input = ed.Inputs[0].Value;
+    ed.Outputs[0].Value = 1;
+    ed.Outputs[0].Toggle();
+}
+```
+
+### Event-Driven Monitoring
+```csharp
+using (EDDevice ed = EDDevice.Create("192.168.0.100"))
+{
+    ed.Inputs[0].IOLineRisingEdge += (line, device, changeType) =>
+    {
+        Console.WriteLine($"Input {line.IONumber} went HIGH");
+    };
+    Console.ReadKey(); // keep alive to receive events
+}
+```
+
+### Analog IO
+```csharp
+using (EDDevice ed = EDDevice.Create("192.168.0.100"))
+{
+    double voltage = ed.Inputs[0].AValue;
+    // For temperature devices (ED-582, ED-593):
+    ASCIIProtocol protocol = (ASCIIProtocol)ed.Protocol;
+    protocol.TempUnit = TemperatureUnit.Celsius;
+}
+```
+
+### Serial Communication
+```csharp
+var es = new ES246("192.168.0.100");
+es.Connect();
+es.Ports[0].Protocol = new DefaultSerialProtocol()
+{
+    TerminatingCharacters = "\r\n",
+    Encoding = System.Text.Encoding.UTF8,
+};
+es.Ports[0].Send("command");
+string response = es.Ports[0].Receive();
+es.Disconnect();
+```
+
+### Modbus TCP
+```csharp
+var conn = new TCPConnection("192.168.0.100", TCPConnection.DEFAULT_MODBUSTCP_PORT);
+var ed = new ED588(conn, new ModbusTCPProtocol());
+ed.Connect();
+int input = ed.Inputs[0].Value; // same API, different protocol
+ed.Disconnect();
+```
+
+## Architecture
+
+Three layers: Connection (transport) → Protocol (encoding) → Device (user API).
+IO values are cached for `IOLineCacheTimeout` ms (default 10). Reading one line refreshes all lines of that type.
+Events are driven by a polling timer. Subscribe at device level (`ed.IOLineChanged`) or per-line (`ed.Inputs[0].IOLineRisingEdge`).
+
+## Links
+
+- [API Reference](https://docs.brainboxes.com/api/dotnet/Brainboxes.IO/)
+- [Full API Surface](https://docs.brainboxes.com/llms-full.txt)
+- [Getting Started](https://docs.brainboxes.com/articles/getting-started)
+- [NuGet Package](https://www.nuget.org/packages/Brainboxes.IO)
+- [Product Range](https://www.brainboxes.com)

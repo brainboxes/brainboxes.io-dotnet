@@ -1,0 +1,205 @@
+﻿#fan-outer {
+    position: absolute;
+    width: 100%;
+    cursor:none;
+    user-select:none;
+    left: 0;
+}
+#fan-inner {
+    position: relative;
+    width: 100%;
+    cursor:none;
+    user-select:none;
+}
+#fan-inner.on {
+    -webkit-animation-name: spin;
+    -webkit-animation-iteration-count: infinite;
+    -webkit-animation-timing-function: linear;
+    -webkit-animation-fill-mode: forwards;
+    -moz-animation-name: spin;
+    -moz-animation-iteration-count: infinite;
+    -moz-animation-timing-function: linear;
+    -webkit-animation-fill-mode: forwards;
+    animation-name: spin;
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+    animation-fill-mode: forwards;
+}
+
+@-ms-keyframes spin {
+    from { -ms-transform: rotate(0deg); }
+    to { -ms-transform: rotate(360deg); }
+}
+@-moz-keyframes spin {
+    from { -moz-transform: rotate(0deg); }
+    to { -moz-transform: rotate(360deg); }
+}
+@-webkit-keyframes spin {
+    from { -webkit-transform: rotate(0deg); }
+    to { -webkit-transform: rotate(360deg); }
+}
+@keyframes spin {
+    from {
+        transform:rotate(0deg);
+    }
+    to {
+        transform:rotate(360deg);
+    }
+}
+
+@-webkit-keyframes spaceboots {
+    0% { -webkit-transform: translate(4px, 2px) rotate(0deg); }
+    10% { -webkit-transform: translate(-2px, -4px) rotate(-1deg); }
+    20% { -webkit-transform: translate(-6px, 0px) rotate(1deg); }
+    30% { -webkit-transform: translate(0px, 4px) rotate(0deg); }
+    40% { -webkit-transform: translate(2px, -2px) rotate(1deg); }
+    50% { -webkit-transform: translate(-2px, 4px) rotate(-1deg); }
+    60% { -webkit-transform: translate(-6px, 2px) rotate(0deg); }
+    70% { -webkit-transform: translate(4px, 2px) rotate(-1deg); }
+    80% { -webkit-transform: translate(-2px, -2px) rotate(1deg); }
+    90% { -webkit-transform: translate(4px, 4px) rotate(0deg); }
+    100% { -webkit-transform: translate(2px, -4px) rotate(-1deg); }
+}
+@keyframes spaceboots {
+    0% { transform: translate(4px, 2px) rotate(0deg); }
+    10% { transform: translate(-2px, -4px) rotate(-1deg); }
+    20% { transform: translate(-6px, 0px) rotate(1deg); }
+    30% { transform: translate(0px, 4px) rotate(0deg); }
+    40% { transform: translate(2px, -2px) rotate(1deg); }
+    50% { transform: translate(-2px, 4px) rotate(-1deg); }
+    60% { transform: translate(-6px, 2px) rotate(0deg); }
+    70% { transform: translate(4px, 2px) rotate(-1deg); }
+    80% { transform: translate(-2px, -2px) rotate(1deg); }
+    90% { transform: translate(4px, 4px) rotate(0deg); }
+    100% {transform: translate(2px, -4px) rotate(-1deg); }
+}
+#beeper.on {
+    -webkit-animation-name: spaceboots;
+    -webkit-animation-duration: 0.8s;
+    -webkit-transform-origin:50% 50%;
+    -webkit-animation-iteration-count: infinite;
+    -webkit-animation-timing-function: linear;
+	transform-origin: 50% 50%;
+    animation-name: spaceboots;
+    animation-duration:  0.8s;
+    animation-iteration-count: infinite;
+    animation-timing-function: linear;
+}
+
+#numberHolder {
+    width: 100%;
+    height: 350px;
+    transition: background-image 0.4s ease;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+
+.hoverselect, .hoverselect img {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.hoverselect:hover{
+    background-color: #F6FAFF;
+}
+
+.hoverselect:active, .hoverselect img:active  {
+    background-color: #94DBFF;
+}
+.img0{
+    background-image:url(/img/0.png);
+}
+.img1{
+    background-image:url(/img/1.png);
+}
+.img2{
+    background-image:url(/img/2.png);
+}
+.img3{
+    background-image:url(/img/3.png);
+}
+.img4{
+    background-image:url(/img/4.png);
+}
+.img5{
+    background-image:url(/img/5.png);
+}
+.img6{
+    background-image:url(/img/6.png);
+}
+.img7{
+    background-image:url(/img/7.png);
+}
+.img8{
+    background-image:url(/img/8.png);
+}
+.img9{
+    background-image:url(/img/9.png);
+}
+.imgA{
+    background-image:url(/img/A.png);
+}
+.imgB{
+    background-image:url(/img/B.png);
+}
+.imgC{
+    background-image:url(/img/C.png);
+}
+.imgD{
+    background-image:url(/img/D.png);
+}
+.imgE{
+    background-image:url(/img/E.png);
+}
+.imgF{
+    background-image:url(/img/F.png);
+}
+body {
+  font-family: Arial;
+}
+
+.plot svg {
+    background: #ccc;
+    width: 240px;
+    height: 240px;
+    margin: 5px;
+}
+
+svg .valueArc {
+    fill: red;
+    fill-opacity: 0.5
+}
+
+svg .changeArc {
+    fill: black;
+    fill-opacity: 0.2
+}
+
+svg .interactArc {
+    fill: red;
+    fill-opacity: 0.1;
+}
+
+svg .text {
+  font-weight: bold;
+  font-size: 2rem;
+}
+.centeralign{
+    position:relative;
+    margin-top: 25%;
+    width: 90%;
+    padding: 5%;
+}
+
+.lascar-bar {
+    width:10%;
+    padding-right: 5px;
+}
+
+ng-chart {
+	display:block;
+	overflow: hidden;
+	width: 100%;
+	position: relative;
+}

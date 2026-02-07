@@ -1,0 +1,48 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">net10.0;net48;netstandard2.0;netstandard2.1</TargetFrameworks>
+    <TargetFrameworks Condition="'$(OS)' != 'Windows_NT'">net10.0;netstandard2.0;netstandard2.1</TargetFrameworks>
+    <AssemblyName>Brainboxes.IO</AssemblyName>
+    <RootNamespace>Brainboxes.IO</RootNamespace>
+    <Authors>Brainboxes Limited</Authors>
+    <Company>Brainboxes Limited</Company>
+    <Copyright>Copyright © Brainboxes Limited 2026</Copyright>
+    <Title>Brainboxes.IO Monitor and Control Brainboxes Devices using .NET</Title>
+    <Description>
+      Official .NET API code package for communication with Brainboxes Ethernet-attached data acquisition and control devices, and is provided by Brainboxes Limited.
+      Documentation: https://www.brainboxes.com/files/pages/support/faqs/sample_code/Brainboxes.IO.Documentation/html/N_Brainboxes_IO.htm
+      Designed for Brainboxes Digital and Analog Remote IO and Ethernet to Serial devices including: BB-400, ED-588, ED-516, ED-527, ES-246, ES-257 and the rest of the Brainboxes ED and ES range.
+      Targets .NET 10, .NET Standard 2.0/2.1, .NET Framework 4.8
+      This package can run on Windows 7, 8, 10, 11 and Server 2008, 2012, 2016, 2019, 2022 and 2025 using .NET Framework.
+      It can also run on Windows IoT Core, Linux, Raspbian or macOS using .NET
+	</Description>
+    <PackageProjectUrl>https://www.brainboxes.com/remote-io</PackageProjectUrl>
+    <PackageIconUrl>https://www.brainboxes.com/files/catalog/icons/bb-ms-icon-144x144.png</PackageIconUrl>
+    <PackageTags>Brainboxes RemoteIO IO Remote Ethernet Serial Digital Analog Process Control Automation BB-400 ED-588 ED588 ED-204 ED204 ED-516 ED-527 ED-549 ES-246 ES-257 ES-446 ES-457 ED-560 ED560</PackageTags>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <PackageLicenseExpression>Unlicense</PackageLicenseExpression>
+    <NeutralLanguage>en</NeutralLanguage>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <!--<RepositoryUrl></RepositoryUrl>-->
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <CodeAnalysisDictionary Include="..\Brainboxes.IO\CustomDictionary.xml" Link="CustomDictionary.xml" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' != 'net48'">
+    <PackageReference Include="System.IO.Ports" Version="9.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="CHANGELOG.md">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+</Project>

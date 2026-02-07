@@ -1,0 +1,482 @@
+# Brainboxes.IO .NET API — Full API Reference
+
+> Complete public API surface for the Brainboxes.IO .NET library. For a concise overview, see [llms.txt](https://docs.brainboxes.com/llms.txt).
+
+## Namespace: Brainboxes.IO
+
+### Enums
+
+```
+IODirection [Flags]
+  Input = 1        — Digital input
+  Output = 2       — Digital output
+  AInput = 4       — Analog input
+  AOutput = 8      — Analog output
+
+IOChangeTypes [Flags]
+  NoChange = 0     — No state change detected
+  RisingEdge = 1   — LOW→HIGH (input) or OPEN→CLOSED (output)
+  FallingEdge = 2  — HIGH→LOW (input) or CLOSED→OPEN (output)
+  Latched = 7      — Both rising and falling edges within one polling interval
+  Undefined = 99   — Initial state, no previous value known
+
+AIOChangeTypes
+  Delta = 0        — Value changed by more than delta threshold
+  Below = 1        — Value crossed below target
+  Above = 2        — Value crossed above target
+  Enter = 3        — Value entered target ± delta range
+  Exit = 4         — Value left target ± delta range
+
+IOType
+  Digital          — Digital IO line
+  Analog           — Analog IO line
+  Relay = Digital  — Relay (programmatically identical to digital)
+
+AnalogDataFormat
+  Engineering      — Real-world units (volts, milliamps, degrees)
+  PercentFSR       — Percentage of full-scale range
+  TwosComplement   — Raw ADC two's complement
+  Hexadecimal      — Raw ADC hexadecimal
+
+TemperatureUnit
+  Celsius          — Degrees Celsius
+  Fahrenheit       — Degrees Fahrenheit
+
+CounterMode
+  CounterMode16Bits — 16-bit counter (0–65,535)
+  CounterMode32Bits — 32-bit counter (0–4,294,967,295)
+
+BBSerialPortType
+  RS232            — RS-232 serial
+  RS422_485        — RS-422/485 serial
+```
+
+### Delegates
+
+```
+ConnectionStatusChangedEventHandler(IConnection connection, string property, bool newValue) : void
+DeviceStatusChangedEventHandler<TConnection, TProtocol>(IDevice<TConnection, TProtocol> device, string property, bool newValue) : void
+IOLineChangedEventHandler(IOLine line, EDDevice device, IOChangeTypes changeType) : void
+AIOLineChangedEventHandler(IOLine line, EDDevice device, AIOChangeTypes changeType, double previousValue, double currentValue) : void
+```
+
+---
+
+## IConnection (interface)
+
+```
+Properties:
+  bool IsConnected { get; }        — Whether there is an active connection
+  bool IsAvailable { get; }        — Whether the device is reachable (ping for TCP, COM port exists for serial)
+  int Timeout { get; set; }        — Read/write timeout in milliseconds
+  Stream Stream { get; }           — Underlying data stream (available after Connect)
+
+Methods:
+  void Connect()                   — Open the connection
+  void Disconnect()                — Close the connection
+
+Events:
+  ConnectionStatusChangedEventHandler ConnectionStatusChangedEvent — Fires when IsConnected or IsAvailable changes
+
+Implements: IDisposable
+```
+
+## Connection (abstract base class)
+
+```
+Implements: IConnection
+
+Properties:
+  bool IsConnected { get; set; }      — Cached connection state
+  bool IsAvailable { get; set; }      — Cached availability state
+  int Timeout { get; set; }           — Read/write timeout (ms)
+  Stream Stream { get; }              — Underlying stream
+
+Methods:
+  void Connect()                      — Connect (calls _connect, starts polling timer)
+  void Disconnect()                   — Disconnect (calls _disconnect, stops polling)
+  void Dispose()                      — Dispose (calls Disconnect)
+  static Connection Create(string ip, int port = 9500, int timeout = 2000) : Connection
+    — Factory: "COMx" → SerialConnection, otherwise → TCPConnection
+
+Events:
+  ConnectionStatusChangedEventHandler ConnectionStatusChangedEvent
+
+Protected (for subclasses):
+  abstract void _connect()
+  abstract void _disconnect()
+  abstract bool _computeIsConnectedValue()
+  abstract void _newValueIsConnected()
+  abstract bool _computeIsAvailableValue()
+  abstract void _newValueIsAvailable()
+  Stream _stream                      — Backing stream field
+  int _timeout                        — Timeout backing field
+  int _isAvailableCacheTimeoutMs      — Cache timeout for IsAvailable
+  int _isConnectedCacheTimeoutMs      — Cache timeout for IsConnected
+```
+
+## TCPConnection
+
+```
+Extends: Connection
+
+Constants:
+  static readonly int DEFAULT_ASCII_PORT = 9500
+  static readonly int DEFAULT_MODBUSTCP_PORT = 502
+
+Constructor:
+  TCPConnection(string ip = "192.168.127.255", int port = 9500, int timeout = 2000, int connectionTimeout = 20000)
+
+Properties:
+  readonly string IP                  — IP address
+  int Port { get; set; }             — TCP port (cannot change while connected)
+  int ConnectionTimeout { get; set; } — Socket connect timeout (ms, default 20000)
+  int Timeout { get; set; }          — Read/write timeout (ms)
+```
+
+## SerialConnection
+
+```
+Extends: Connection
+
+Constructor:
+  SerialConnection(string comPort = "COM1", int baudRate = 9600, int timeout = 2000)
+
+Properties:
+  readonly string COMPort             — COM port name
+  int BaudRate { get; set; }         — Baud rate (cannot change while connected)
+  int Timeout { get; set; }          — Read/write timeout (ms)
+```
+
+---
+
+## IProtocol (interface)
+
+```
+(Marker interface — base for IIOProtocol and ISerialProtocol)
+```
+
+## IIOProtocol (interface)
+
+```
+Methods:
+  int GetAllDigitalLineStates(Stream stream) : int
+    — Returns bitmask of all digital line states
+  void SetAllDigitalOutputStates(Stream stream, int value) : void
+    — Sets all digital outputs from bitmask
+  int GetDigitalOutputLineState(Stream stream, IOLine line) : int
+    — Returns state of single digital output (0 or 1)
+  void SetDigitalOutputLineState(Stream stream, IOLine line, int value) : void
+    — Sets single digital output
+  int GetDigitalInputLineState(Stream stream, IOLine line) : int
+    — Returns state of single digital input (0 or 1)
+  int GetDigitalInputLineCount(Stream stream, IOLine line) : int
+    — Returns transition count for input line
+  void ClearDigitalInputLineCount(Stream stream, IOLine line) : void
+    — Resets transition counter to zero
+  int GetAllDigitalInputHighLatchedStatus(Stream stream) : int
+    — Returns bitmask of high-latch registers
+  int GetAllDigitalInputLowLatchedStatus(Stream stream) : int
+    — Returns bitmask of low-latch registers
+  double[] GetAllAnalogLineStates(Stream stream, int numberOfLines) : double[]
+    — Returns array of analog values for all lines
+  void SetAnalogLineState(Stream stream, IOLine line, double value) : void
+    — Sets single analog output value
+  string GetDeviceConfiguration(Stream stream) : string
+    — Returns device XML configuration
+  void SetDeviceConfiguration(Stream stream, string configuration) : void
+    — Writes device configuration
+  void SetDeviceConfiguration(Stream stream, string parameterName, string parameterValue) : void
+    — Sets single configuration parameter
+  void FactoryReset(Stream stream) : void
+    — Resets device to factory defaults
+  void Restart(Stream stream) : void
+    — Restarts device
+  string SendCommand(Stream stream, string command) : string
+    — Sends raw command, returns response
+```
+
+## ISerialProtocol (interface)
+
+```
+Implements: ICloneable
+
+Methods:
+  void Send(Stream stream, string data) : void
+    — Encode and send data
+  string Receive(Stream stream) : string
+    — Receive and decode data (blocks until terminator or timeout)
+```
+
+## ASCIIProtocol
+
+```
+Implements: IIOProtocol
+
+Properties:
+  AnalogDataFormat AnalogFormat { get; set; }  — Analog value format (default: Engineering)
+  TemperatureUnit TempUnit { get; set; }       — Temperature unit (default: Celsius)
+  CounterMode CountMode { get; set; }          — Counter mode (default: 16-bit)
+  string deviceType                            — Device type string from configuration
+
+(All IIOProtocol methods implemented)
+```
+
+## ModbusTCPProtocol
+
+```
+Implements: IIOProtocol
+
+(All IIOProtocol methods implemented. FactoryReset, Restart, GetDeviceConfiguration,
+SetDeviceConfiguration throw NotImplementedException.)
+```
+
+## DefaultSerialProtocol
+
+```
+Implements: ISerialProtocol
+
+Properties:
+  string TerminatingCharacters { get; set; }   — End-of-message characters (default: "\r")
+  Encoding Encoding { get; set; }              — Character encoding (default: ASCII)
+
+Methods:
+  void Send(Stream stream, string data) : void
+  string Receive(Stream stream) : string
+  object Clone() : object
+```
+
+---
+
+## Device<TConnection, TProtocol> (abstract base class)
+
+```
+Properties:
+  string Label { get; set; }                   — User-definable label for debugging
+  TProtocol Protocol { get; set; }             — Protocol instance
+  TConnection Connection { get; }              — Connection instance
+  bool IsConnected { get; }                    — Whether device is connected
+  bool IsAvailable { get; }                    — Whether device is reachable
+
+Methods:
+  void Connect()                               — Connect to device
+  void Disconnect()                            — Disconnect from device
+  void Dispose()                               — Dispose (calls Disconnect)
+  string Describe() : string                   — Detailed device description
+
+Events:
+  DeviceStatusChangedEventHandler<TConnection, TProtocol> DeviceStatusChangedEvent
+```
+
+## EDDevice
+
+```
+Extends: Device<IConnection, IIOProtocol>
+
+Constructor:
+  EDDevice()                                   — Default (no connection)
+  EDDevice(IConnection connection)             — With connection, auto-selects protocol
+  EDDevice(IConnection connection, IIOProtocol protocol) — With explicit protocol
+
+Factory:
+  static EDDevice Create(string ipAddress) : EDDevice
+    — Connects, reads XML config, returns correct subclass
+
+Properties:
+  IOList<IOLine> IOLines { get; }              — All IO lines by logical number
+  IOList<IOLine> Inputs { get; }               — Input lines only
+  IOList<IOLine> Outputs { get; }              — Output lines only
+  IConnection Connection { get; }              — Underlying connection
+  IIOProtocol Protocol { get; set; }           — Protocol (ASCII or Modbus)
+  int IOLineCacheTimeout { get; set; }         — Value cache timeout in ms (default: 10)
+  bool IsConnected { get; }                    — Connection state
+  bool IsAvailable { get; }                    — Device reachability
+
+Methods:
+  void Connect()                               — Connect and start IO polling
+  void Disconnect()                            — Disconnect and stop polling
+  string SendCommand(string command) : string  — Send raw ASCII command
+  void FactoryReset()                          — Reset device to factory defaults
+  void Restart()                               — Restart device
+  string Describe() : string                   — Full device + IO state description
+
+Events:
+  IOLineChangedEventHandler IOLineChanged      — Any IO line changed
+  IOLineChangedEventHandler IOLineRisingEdge   — Any line: rising edge
+  IOLineChangedEventHandler IOLineFallingEdge   — Any line: falling edge
+  IOLineChangedEventHandler IOLineCount        — Any line: count changed
+  DeviceStatusChangedEventHandler DeviceStatusChangedEvent — Connection/availability changed
+```
+
+## IOLine
+
+```
+Properties:
+  readonly int LogicalNumber                   — Line number 0–15 (as on device case)
+  readonly int IONumber                        — IO number (e.g. DIN0, DOUT2)
+  readonly IODirection IODirection             — Input, Output, AInput, or AOutput
+  readonly IOType IOType                       — Digital or Analog
+  string Label { get; set; }                   — User-definable debugging label
+  int Value { get; set; }                      — Digital state (0/1). Get: cached, refreshes all lines if expired. Set: outputs only.
+  double AValue { get; set; }                  — Analog value. Get: cached. Set: analog outputs only.
+  int Count { get; }                           — Input transition count (inputs only)
+  bool HighLatchedStatus { get; }              — High-latch register (inputs only)
+  bool LowLatchedStatus { get; }              — Low-latch register (inputs only)
+  IOChangeTypes MostRecentChangeType { get; }  — Last detected change type
+
+Methods:
+  int Toggle() : int                           — Invert digital output, returns new value
+  void ClearCount()                            — Reset transition counter (inputs only)
+  string Describe() : string                   — Full diagnostic description
+  string ToString() : string                   — Short label + line info
+
+Events:
+  IOLineChangedEventHandler IOLineChanged      — This line changed
+  IOLineChangedEventHandler IOLineRisingEdge   — This line: rising edge
+  IOLineChangedEventHandler IOLineFallingEdge   — This line: falling edge
+  IOLineChangedEventHandler IOLineCount        — This line: count changed
+
+Analog Event Methods:
+  void SubscribeToDeltaEvent(ref AIOLineChangedEventHandler function, double delta)
+  void UnsubscribeToDeltaEvent(ref AIOLineChangedEventHandler function)
+  void SubscribeToTargetEvent(ref AIOLineChangedEventHandler function, double target)
+  void UnsubscribeToTargetEvent(ref AIOLineChangedEventHandler function)
+  void SubscribeToTargetRangeEvent(ref AIOLineChangedEventHandler function, double target, double delta)
+  void UnsubscribeToTargetRangeEvent(ref AIOLineChangedEventHandler function)
+```
+
+## ESDevice
+
+```
+Extends: Device<IConnection, ISerialProtocol>
+
+Constructor:
+  ESDevice(string ipAddress, int port1PortNumber = 9001, int timeout = 2000)
+  ESDevice(string ipAddress, int port1PortNumber = 9001, int timeout = 2000, int numberOfPorts = 8, BBSerialPortType portType = RS232)
+
+Factory:
+  static ESDevice Create(string ipAddress, int port1PortNumber = 9001, int timeout = 2000) : ESDevice
+  static ESDevice Create(string ipAddress, ISerialProtocol protocol) : ESDevice
+
+Properties:
+  IList<BBSerialPort> Ports { get; }           — Serial ports (indexed from 0)
+  readonly int NumberOfPorts                   — Number of physical serial ports
+  readonly BBSerialPortType PortType           — RS232 or RS422/485
+  string IPAddress                             — Device IP address
+  ISerialProtocol Protocol { get; set; }       — Sets protocol on all ports (cloned)
+  bool IsConnected { get; }                    — True if any port is connected
+  bool IsAvailable { get; }                    — Ping-based availability
+
+Methods:
+  void Connect()                               — Connect all ports
+  void Disconnect()                            — Disconnect all ports
+
+Events:
+  DeviceStatusChangedEventHandler DeviceStatusChangedEvent
+```
+
+## BBSerialPort
+
+```
+Properties:
+  int PortNumber { get; }                      — Port number (1-based)
+  BBSerialPortType PortType { get; }           — RS232 or RS422/485
+  IConnection Connection { get; }              — Underlying TCP connection
+  ISerialProtocol Protocol { get; set; }       — Serial protocol for this port
+  string Label { get; set; }                   — User label for debugging
+  bool IsConnected { get; }                    — Connection state
+
+Methods:
+  void Connect()                               — Connect this port
+  void Disconnect()                            — Disconnect this port
+  void Send(string data)                       — Send data via protocol
+  string Receive() : string                    — Receive data via protocol (blocking)
+```
+
+---
+
+## Device Subclasses
+
+### ED-Series
+```
+BB400(IConnection, IIOProtocol?)         — 8 DI + 8 DO (Modbus unsupported)
+ED593(IConnection, IIOProtocol?)         — 8 thermocouple analog inputs
+ED582(IConnection, IIOProtocol?)         — 4 RTD analog inputs
+ED560(IConnection, IIOProtocol?)         — 4 analog outputs
+ED549(IConnection, IIOProtocol?)         — 8 analog inputs
+ED588(IConnection, IIOProtocol?)         — 8 DI + 8 DO
+ED538(IConnection, IIOProtocol?)         — 8 DI + 4 relays
+ED516(IConnection, IIOProtocol?)         — 16 DI
+ED527(IConnection, IIOProtocol?)         — 16 DO
+ED004(IConnection, IIOProtocol?)         — 4 DI + 4 DO + RS-232
+ED204(IConnection, IIOProtocol?)         — 4 DI + 4 DO + RS-232
+ED008(IConnection, IIOProtocol?)         — 8 DI + 8 DO
+ED038(IConnection, IIOProtocol?)         — 3 DI + 3 relays
+```
+
+### ES-Series
+```
+ES246(string ip, int port = 9001, int timeout = 2000)   — 1-port RS-232
+ES257(string ip, int port = 9001, int timeout = 2000)   — 2-port RS-232
+ES313(string ip, ...)   — 1-port RS-422/485
+ES320(string ip, ...)   — 2-port RS-422/485
+ES346(string ip, ...)   — 1-port RS-232
+ES357(string ip, ...)   — 2-port RS-232
+ES413(string ip, ...)   — 1-port RS-422/485 (PoE)
+ES420(string ip, ...)   — 2-port RS-422/485 (PoE)
+ES446(string ip, ...)   — 1-port RS-232 (PoE)
+ES457(string ip, ...)   — 2-port RS-232 (PoE)
+ES511(string ip, ...)   — 1-port RS-232 (compact)
+ES522(string ip, ...)   — 2-port RS-232 (compact)
+ES551(string ip, ...)   — 1-port RS-422/485 (compact)
+ES571(string ip, ...)   — 2-port RS-422/485 (compact)
+ES701(string ip, ...)   — 1-port RS-232 (wireless)
+ES279(string ip, ...)   — 2-port RS-232 (isolated)
+ES842(string ip, ...)   — 4-port RS-232
+```
+
+---
+
+## Stream Classes
+
+### BBStream
+
+```
+Extends: Stream (wraps an inner stream with thread-safe locks)
+
+Fields:
+  object streamReadLock   — Lock for synchronising read operations
+  object streamWriteLock  — Lock for synchronising write operations
+
+(Standard Stream overrides: Read, Write, Flush, Length, Position, CanRead, CanWrite, CanSeek, Seek, SetLength)
+```
+
+### BBNetworkStream
+
+```
+Extends: BBStream (wraps a NetworkStream, sets ownsSocket = false)
+
+Constructor:
+  BBNetworkStream(Socket socket)
+```
+
+---
+
+## TCP Port Reference
+
+| Port | Purpose |
+|------|---------|
+| 9500 | ASCII protocol (ED-series default) |
+| 502  | Modbus TCP protocol |
+| 9001 | ES-series serial port 1 |
+| 9002 | ES-series serial port 2 |
+| 9003+| ES-series serial ports 3+ |
+| 80   | Device XML configuration page |
+
+## Links
+
+- [API Reference](https://docs.brainboxes.com/api/dotnet/Brainboxes.IO/)
+- [Concise Overview](https://docs.brainboxes.com/llms.txt)
+- [Getting Started](https://docs.brainboxes.com/articles/getting-started)
+- [NuGet Package](https://www.nuget.org/packages/Brainboxes.IO)
+- [Product Range](https://www.brainboxes.com)

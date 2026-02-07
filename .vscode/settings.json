@@ -1,0 +1,7 @@
+{
+    "dotnet.defaultSolution": "Brainboxes.IO.sln",
+    "dotnet.preferredTargetFramework": "net10.0",
+    "dotnet.unitTests.runSettingsPath": "Brainboxes.IO.Tests/test.runsettings",
+    "dotnet.unitTests.targetFramework": "net10.0",
+    "omnisharp.projectLoadTimeout": 120
+}
